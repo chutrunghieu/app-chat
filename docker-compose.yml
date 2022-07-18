@@ -1,0 +1,99 @@
+version: '4.10.1'
+services:
+  zookeeper:
+    container_name: zookeeper
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - 2181:2181
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+    networks:
+      - bridge
+  kafka:
+    container_name: kafka
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    image: wurstmeister/kafka:latest
+    ports:
+      - 9092:9092
+    volumes:
+      - .data/kafka:/var/run/docker.sock
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true 
+      - KAFKA_DELETE_TOPIC_ENABLE=true 
+    networks:
+      - bridge
+  postgresChat:
+    container_name: postgresChat
+    hostname: postgresChat
+    restart: always
+    image: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - .data/postgres:/var/lib/postgresql/dataChat
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=acevip123
+      - POSTGRES_DB=app_chat
+      - DB_HOST=postgresChat
+    networks:
+      - bridge
+  postgresAuth:
+    container_name: postgresAuth
+    hostname: postgresAuth
+    restart: always
+    image: postgres
+    ports:
+      - 2345:2345
+    volumes:
+      - .data/postgres:/var/lib/postgresql/dataAuth
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=acevip123
+      - POSTGRES_DB=auth_chat
+      - DB_HOST=postgresAuth
+    networks:
+      - bridge
+  authen:
+    container_name: authen
+    restart: always
+    build: ./authen
+    ports:
+      - 3000:3000
+    volumes:
+      - ./authen:/app
+    environment:
+      - PORT=3000
+      - POSTGRES_URL=postgres://postgres:acevip123@postgresAuth:2345/auth_chat
+      - KAFKA_BOOSTRAP_SERVER=kafka:9092
+      # - KAFKA_TOPIC=topic1
+    depends_on:
+      - postgresAuth
+      - kafka
+    networks:
+      - bridge
+  chat:
+    container_name: chat
+    restart: always
+    build: ./chat
+    ports:
+      - 1209:1209
+    volumes:
+      - ./chat:/app
+    environment:
+      - PORT=1209
+      - POSTGRES_URL=postgres://postgres:acevip123@postgresChat:5432/app_chat
+      - KAFKA_BOOSTRAP_SERVER=kafka:9092
+      - KAFKA_TOPIC=topic
+    depends_on:
+      - postgresAuth
+      - kafka  
+    networks:
+      - bridge
+networks:
+  bridge:
+    driver: bridge
