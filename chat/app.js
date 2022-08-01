@@ -7,7 +7,8 @@ const socketio = require('socket.io');
 const cors = require('cors');
 const http = require('http');
 const routes = require('./routes')
-const kafka = require('kafka-node');
+const { Kafka } = require('kafkajs')
+
 const app = express()
 
 //connect database
@@ -36,13 +37,6 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 //socket.io
 const server = http.createServer(app);
 const io = socketio(server
-  //   , {cors: {
-
-  //   origin: "http://localhost:1209",
-
-  //   credentials: true,
-
-  // },}
 );
 
 io.on('connection', (socket) => {
@@ -69,30 +63,14 @@ io.on('connection', (socket) => {
       .emit('chat-message', conversation_id, message);
   });
 })
-
-//api routes
+// api routes
 routes(app, io);
-
-//kafka
-const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_BOOSTRAP_SERVER || "kafka:9092" })
-client.createTopics([{
-  topic: 'topic',
-  partitions: 1,
-}], (err, result) => {
-  if (err) {
-    console.log(err);
-  } else {
-    return result
-  }
-})
-const consumer = new kafka.Consumer(client, [{ topic: process.env.KAFKA_TOPIC || 'topic', partition: 0 }],
-  {
-    autoCommit: false
-  });
 
 
 const PORT = process.env.PORT || 1209;
 
 server.listen(PORT);
 
-module.exports = { app, consumer };
+console.log(PORT);
+
+module.exports = { app};

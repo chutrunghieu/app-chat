@@ -15,6 +15,7 @@ const verifyCallback =
       resolve();
     }
   };
+
 exports.auth = (requiredRights) => async (req, res, next) => {
   return new Promise((resolve, reject) => {
     passport.authenticate(
