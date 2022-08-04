@@ -7,7 +7,8 @@ const socketio = require('socket.io');
 const cors = require('cors');
 const http = require('http');
 const routes = require('./routes')
-const { Kafka } = require('kafkajs')
+const socket = require('./app/socket');
+
 
 const app = express()
 
@@ -36,33 +37,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 //socket.io
 const server = http.createServer(app);
-const io = socketio(server
-);
-
-io.on('connection', (socket) => {
-  socket.on('disconnect', () => {
-    const userId = socket.user_id;
-  });;
-  socket.on('join', (user_id) => {
-    socket.user_id = user_id;
-    socket.join(user_id);
-    console.log(user_id);
-  });
-  socket.on('join-conversations', (conversation_ids) => {
-    conversation_ids.forEach((id) => socket.join(id));
-  });
-  socket.on('join-conversation', (conversation_id) => {
-    socket.join(conversation_id);
-  });
-  socket.on('leave-conversation', (conversation_id) => {
-    socket.leave(conversation_id);
-  });
-  socket.on('chat-message', (conversation_id, message) => {
-    socket.broadcast
-      .to(conversation_id)
-      .emit('chat-message', conversation_id, message);
-  });
-})
+const io = socketio(server);
+socket(io);
 // api routes
 routes(app, io);
 
@@ -73,4 +49,4 @@ server.listen(PORT);
 
 console.log(PORT);
 
-module.exports = { app};
+module.exports = app;

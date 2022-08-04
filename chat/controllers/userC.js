@@ -34,7 +34,7 @@ class userC {
                     const message = await messageServices.createMessage(req.user.user_id, content, findOneConversation.conversation_id);
                     if (message) {
                         this.io.to(conversation_id + '')
-                            .emit('-messagenew', conversation_id, message);
+                            .emit('new-message', conversation_id, message);
                         res.status(200).json({ msg: "Success", message });
                     }
             } else {

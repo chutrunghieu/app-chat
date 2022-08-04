@@ -14,7 +14,10 @@ exports.authen = async (req, res) => {
 exports.author = (roleRight) => async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader.split(' ')[1];
+    if (!authHeader) {
+      return res.status(400).json({ message: "You must login!" });
+    } else {
+      const token = authHeader.split(' ')[1];
     const response = await axios({method: 'GET', url: 'http://192.168.3.112:3000/author', headers: {"Authorization" : `Bearer ${token}`}});
     if (!response.data) {
       return reject("Not authenticate");
@@ -24,6 +27,7 @@ exports.author = (roleRight) => async (req, res, next) => {
       return reject("You do not have access");
     } else {
       return next()
+    }
     }
   } catch (error) {
     res.status(400).json({ message: "Error!" });
