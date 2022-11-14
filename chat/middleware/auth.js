@@ -2,7 +2,7 @@ const axios = require('axios').default;
 
 exports.authen = async (req, res) => {
   try {
-    const response = await axios({method: 'GET', url: 'http://192.168.3.112:3000/authen'});
+    const response = await axios({method: 'GET', url: 'http://172.28.208.1:3000/authen'});
     const dataAuthen = response.data;
     return res.status(200).json({ msg: "Success", dataAuthen });
   } catch (error) {
@@ -18,7 +18,7 @@ exports.author = (roleRight) => async (req, res, next) => {
       return res.status(400).json({ message: "You must login!" });
     } else {
       const token = authHeader.split(' ')[1];
-    const response = await axios({method: 'GET', url: 'http://192.168.3.112:3000/author', headers: {"Authorization" : `Bearer ${token}`}});
+    const response = await axios({method: 'GET', url: 'http://172.28.208.1:3000/author', headers: {"Authorization" : `Bearer ${token}`}});
     if (!response.data) {
       return reject("Not authenticate");
     }
